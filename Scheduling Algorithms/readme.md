@@ -1,0 +1,2 @@
+<title>Operating Systems Code Repository</title>
+<h3>Welcome to the Operating Systems Code Repository! This repository contains various code examples, implementations, and projects related to the fundamental concepts of Operating Systems in Computer Science.</h3>
