@@ -6,11 +6,16 @@
 
 using namespace std;
 
-// Custom type for process information
-using ProcessInfo = pair<string, pair<int, int>>; // {Process-ID, {Arrival Time, Burst Time}}
+struct Process {
+    string processID;
+    int arrivalTime;
+    int burstTime;
+    int completionTime = -1;
+    int turnAroundTime = -1;
+    int waitingTime = -1;
+};
 
 int main() {
-    vector<ProcessInfo> processes;
     int numProcesses;
 
     // Input the number of processes
@@ -23,56 +28,59 @@ int main() {
         return 1;
     }
 
+    vector<Process> processes(numProcesses);
+
     // Input the process details
     for (int i = 0; i < numProcesses; ++i) {
-        string processID;
-        int arrivalTime, burstTime;
         cout << "Enter the Process-ID, Arrival Time, and Burst Time separated by spaces: ";
-        cin >> processID >> arrivalTime >> burstTime;
+        cin >> processes[i].processID >> processes[i].arrivalTime >> processes[i].burstTime;
 
-        if (arrivalTime < 0 || burstTime <= 0) {
+        if (processes[i].arrivalTime < 0 || processes[i].burstTime <= 0) {
             cerr << "Invalid Arrival Time or Burst Time." << endl;
             return 1;
         }
 
-        processes.emplace_back(processID, make_pair(arrivalTime, burstTime));
         cout << endl;
     }
 
     // Sort processes based on Arrival Time
-    sort(processes.begin(), processes.end(), [](const ProcessInfo &a, const ProcessInfo &b) {
-        return a.second.first < b.second.first;
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b) {
+        return a.arrivalTime < b.arrivalTime;
     });
 
     // Display sorted processes
     cout << "User input after sorting:" << endl;
     cout << "Process    AT    BT" << endl;
     for (const auto &process : processes) {
-        cout << process.first << "        " << process.second.first << "        " << process.second.second << endl;
+        cout << process.processID << "        " << process.arrivalTime << "        " << process.burstTime << endl;
     }
 
     // Calculate Completion Time (CT), Turn Around Time (TAT), and Waiting Time (WT)
-    vector<int> completionTime(numProcesses);
-    vector<int> turnAroundTime(numProcesses);
-    vector<int> waitingTime(numProcesses);
     int currentTime = 0;
 
     for (int i = 0; i < numProcesses; ++i) {
-        currentTime = max(currentTime, processes[i].second.first) + processes[i].second.second;
-        completionTime[i] = currentTime;
-        turnAroundTime[i] = completionTime[i] - processes[i].second.first;
-        waitingTime[i] = turnAroundTime[i] - processes[i].second.second;
+        if (currentTime < processes[i].arrivalTime) {
+            currentTime = processes[i].arrivalTime; // Processor is idle until the next process arrives
+        }
+
+        currentTime += processes[i].burstTime;
+        processes[i].completionTime = currentTime;
+        processes[i].turnAroundTime = processes[i].completionTime - processes[i].arrivalTime;
+        processes[i].waitingTime = processes[i].turnAroundTime - processes[i].burstTime;
     }
 
-    // Print the results
-    cout << "CT    TAT    WT" << endl;
-    for (int i = 0; i < numProcesses; ++i) {
-        cout << completionTime[i] << "    " << turnAroundTime[i] << "    " << waitingTime[i] << endl;
+    cout << "Process    CT    TAT    WT" << endl;
+    for (const auto &process : processes) {
+        cout << process.processID << "        " << process.completionTime << "        " << process.turnAroundTime << "        " << process.waitingTime << endl;
     }
 
-    // Calculate and print the average waiting time and completion time
-    double averageWT = accumulate(waitingTime.begin(), waitingTime.end(), 0.0) / numProcesses;
-    double averageCT = accumulate(completionTime.begin(), completionTime.end(), 0.0) / numProcesses;
+    double averageWT = accumulate(processes.begin(), processes.end(), 0.0, [](double sum, const Process &p) {
+        return sum + p.waitingTime;
+    }) / numProcesses;
+
+    double averageCT = accumulate(processes.begin(), processes.end(), 0.0, [](double sum, const Process &p) {
+        return sum + p.completionTime;
+    }) / numProcesses;
 
     cout << "Average waiting time is: " << averageWT << endl;
     cout << "Average completion time is: " << averageCT << endl;
