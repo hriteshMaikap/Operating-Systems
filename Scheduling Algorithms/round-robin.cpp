@@ -100,5 +100,17 @@ int main() {
         cout << procArray[i].processId << "\t" << procArray[i].at << "\t" << procArray[i].original_bt << "\t" << procArray[i].ct << "\t" << procArray[i].tat << "\t" << procArray[i].wt << endl;
     }
 
+    // Calculate average Waiting Time and Completion Time 
+    double averageWT = accumulate(procArray.begin(), procArray.end(), 0.0, [](double sum, const processes &p) {
+        return sum + p.wt;
+    }) / numProcess;
+
+    double averageCT = accumulate(procArray.begin(), procArray.end(), 0.0, [](double sum, const processes &p) {
+        return sum + p.ct;
+    }) / numProcess;
+
+    cout << "Average Waiting Time (WT): " << averageWT << endl;
+    cout << "Average Completion Time (CT): " << averageCT << endl;
+
     return 0;
 }
