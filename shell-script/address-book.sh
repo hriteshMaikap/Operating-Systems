@@ -121,6 +121,32 @@ modify_record() {
     fi
 }
 
+# Function to delete a record from the database
+delete_record() {
+    echo -n "Enter the name of the database to delete record (with file extension): "
+    read db_filename
+
+    if [[ ! -f "$db_filename" ]]; then
+        echo "Database with filename '$db_filename' does not exist"
+        return
+    fi
+
+    echo -n "Enter the User Name to delete: "
+    read search_id
+
+    if [[ -z "$search_id" ]]; then
+        echo "Search name cannot be empty!"
+        return
+    fi
+
+    if grep -q "^$search_id," "$db_filename"; then
+        sed -i "/^$search_id,/d" "$db_filename" && echo "Record deleted successfully!" || echo "Failed to delete record!"
+    else
+        echo "No matching record with name: $search_id"
+    fi
+}
+
+
 # Function to display the menu
 show_menu() {
     echo "+------------------+"
@@ -130,7 +156,8 @@ show_menu() {
     echo "|2. Insert Record  |"
     echo "|3. Search Record  |"
     echo "|4. Modify Record  |"
-    echo "|5. Exit           |"
+    echo "|5. Delete Record  |"
+    echo "|6. Exit           |"
     echo "+------------------+"
 }
 
@@ -141,7 +168,8 @@ handle_choice() {
     2) insert_record ;;
     3) search_record ;;
     4) modify_record ;;
-    5) echo "Exiting..."; exit 0 ;;
+    5) delete_record ;;
+    6) echo "Exiting..."; exit 0 ;;
     *) echo "Invalid choice. Please try again!" ;;
     esac
 }
